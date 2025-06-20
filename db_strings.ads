@@ -23,3 +23,8 @@ package DB_Strings is
    function "<" (Left : Strng; Right : Strng) return Boolean is
       (Left.Value < Right.Value);
 end DB_Strings;
+--
+-- SPDX-License-Identifier: GPL-2.0-or-later WITH GNAT-exception
+-- See https://spdx.org/licenses/
+-- If you find this software useful, please let me know, either through
+-- github.com/jrcarter or directly to pragmada@pragmada.x10hosting.com

@@ -69,13 +69,8 @@ package body DB_Maker is
 
    procedure Reset;
 
-   procedure Add_One (Item : in Element);
-   -- Add Item to Sel
-
    procedure Build_Header;
    -- Builds the header line
-
-   procedure Add_All is new Lists.Iterate (Action => Add_One);
 
    procedure Update_Max (Item : in Element);
    -- Updates the values in Max_Len
@@ -277,6 +272,8 @@ package body DB_Maker is
       Item : constant Element := Get_From_Fields;
 
       Current : constant Lists.Result := List.Search (Item);
+
+      Index : Positive;
    begin -- Modify
       if not Current.Found then
          if Sel.Selected = 0 then
@@ -289,9 +286,16 @@ package body DB_Maker is
       end if;
 
       List.Insert (Item => Item);
-      Refresh;
-      Or_And.Set_Active (Index => 2, Active => True);
-      Search_From (Search_Item => Item, Prev_Index => 0);
+
+      if Max_Changed then -- Need to redraw everything
+         Refresh;
+         Or_And.Set_Active (Index => 2, Active => True);
+         Search_From (Search_Item => Item, Prev_Index => 0);
+      else -- Can update Sel directly
+         Index := List_Index (Item);
+         Sel.Insert (Text => Image (Item), Before => Index);
+         Sel.Set_Selected (Index => Index);
+      end if;
    exception -- Modify
    when E : others =>
       Ada.Text_IO.Put_Line (Item => "Modify: " & Ada.Exceptions.Exception_Information (E) );
@@ -434,12 +438,6 @@ package body DB_Maker is
       Head.Set_Text (Text => +Header);
    end Build_Header;
 
-   procedure Add_One (Item : in Element) is
-      -- Empty
-   begin -- Add_One
-      Sel.Insert (Text => Image (Item) );
-   end Add_One;
-
    procedure Update_Max (Item : in Element) is
       -- Empty
    begin -- Update_Max
@@ -482,6 +480,11 @@ package body DB_Maker is
 
       return Result;
    end Text_List;
+   --  procedure Add_One (Item : in Element) is
+   --  begin
+   --  Sel.Insert(Image(Item));
+   --  end Add_One;
+   --  procedure Add_All is new Lists.Iterate(Add_One);
 
    Event : Ada_GUI.Next_Result_Info;
 
@@ -498,6 +501,8 @@ begin -- DB_Maker
    Find_Max;
    Build_Header;
    Sel := Ada_GUI.New_Selection_List (Text => Text_List (List), Break_Before => True, Height => 20);
+   --  Sel := Ada_GUI.New_Selection_List (Text => (1..0=> <>), Break_Before => True, Height => 20);
+   --  Add_All(List);
    Sel.Set_Text_Font_Kind (Kind => Ada_GUI.Monospaced);
 
    Count := Ada_GUI.New_Text_Box (Text => Integer'Image (List.Length), Break_Before => True, Label => "Number of items:");
@@ -567,18 +572,7 @@ when E : others =>
    Ada.Text_IO.Put_Line (Item => Ada.Exceptions.Exception_Information (E) );
 end DB_Maker;
 --
--- This is free software; you can redistribute it and/or modify it under
--- terms of the GNU General Public License as published by the Free Software
--- Foundation; either version 2, or (at your option) any later version.
--- This software is distributed in the hope that it will be useful, but WITH
--- OUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
--- or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
--- for more details. Free Software Foundation, 59 Temple Place - Suite
--- 330, Boston, MA 02111-1307, USA.
---
--- As a special exception, if other files instantiate generics from this
--- unit, or you link this unit with other files to produce an executable,
--- this unit does not by itself cause the resulting executable to be
--- covered by the GNU General Public License. This exception does not
--- however invalidate any other reasons why the executable file might be
--- covered by the GNU Public License.
+-- SPDX-License-Identifier: GPL-2.0-or-later WITH GNAT-exception
+-- See https://spdx.org/licenses/
+-- If you find this software useful, please let me know, either through
+-- github.com/jrcarter or directly to pragmada@pragmada.x10hosting.com

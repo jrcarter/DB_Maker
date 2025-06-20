@@ -22,11 +22,15 @@ procedure Movies is
    function "=" (Left : Movie_Info; Right : Movie_Info) return Boolean is
       (Left.Title = Right.Title and Left.Year = Right.Year and Left.Director = Right.Director);
 
+   use type PragmARC.Title_Comparisons.Article_List;
+
+   Article : constant PragmARC.Title_Comparisons.Article_List :=
+      PragmARC.Title_Comparisons.English & PragmARC.Title_Comparisons.French & "el ";
+
    function "<" (Left : Movie_Info; Right : Movie_Info) return Boolean is
-      -- Empty
    begin -- "<"
       if Left.Title /= Right.Title then
-         return PragmARC.Title_Comparisons.Less (+Left.Title, +Right.Title);
+         return PragmARC.Title_Comparisons.Less (+Left.Title, +Right.Title, Article);
       end if;
 
       if Left.Year /= Right.Year then
@@ -106,11 +110,7 @@ begin -- Movies
    null;
 end Movies;
 --
--- This is free software; you can redistribute it and/or modify it under
--- terms of the GNU General Public License as published by the Free Software
--- Foundation; either version 2, or (at your option) any later version.
--- This software is distributed in the hope that it will be useful, but WITH
--- OUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
--- or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
--- for more details. Free Software Foundation, 59 Temple Place - Suite
--- 330, Boston, MA 02111-1307, USA.
+-- SPDX-License-Identifier: GPL-2.0-or-later
+-- See https://spdx.org/licenses/
+-- If you find this software useful, please let me know, either through
+-- github.com/jrcarter or directly to pragmada@pragmada.x10hosting.com
