@@ -1,6 +1,6 @@
 -- A generic for creating simple DBs (one table in an RDBMS) with PragmARC.Persistent_Skip_List_Unbounded and an Ada-GUI UI
 --
--- Copyright (C) 2024 by Jeffrey R. Carter
+-- Copyright (C) by Jeffrey R. Carter
 --
 with Ada.Characters.Handling;
 with Ada.Exceptions;
@@ -263,37 +263,38 @@ package body DB_Maker is
          Sel.Insert (Text => Image (Item), Before => Index);
          Sel.Set_Selected (Index => Index);
       end if;
+
+      Count.Set_Text (Text => Integer'Image (List.Length) );
    exception -- Add_Item
    when E : others =>
       Ada.Text_IO.Put_Line (Item => "Add_Item: " & Ada.Exceptions.Exception_Information (E) );
    end Add_Item;
 
    procedure Modify is
-      Item : constant Element := Get_From_Fields;
+      Sel_Index : constant Natural := Sel.Selected;
+      New_Item  : constant Element := Get_From_Fields;
 
-      Current : constant Lists.Result := List.Search (Item);
-
-      Index : Positive;
+      Old_Item : Element;
+      Index    : Positive;
    begin -- Modify
-      if not Current.Found then
-         if Sel.Selected = 0 then
-            Ada_GUI.Show_Message_Box (Text => "Item doesn't exist. Use Add to insert.");
+      if Sel_Index = 0 then
+         Ada_GUI.Show_Message_Box (Text => "Item doesn't exist. Use Add to insert.");
 
-            return;
-         end if;
-
-         List.Delete (Item => Get_By_Index (Sel.Selected) );
+         return;
       end if;
 
-      List.Insert (Item => Item);
+      Old_Item := Get_By_Index (Sel_Index);
+      List.Delete (Item => Old_Item);
+      List.Insert (Item => New_Item);
 
       if Max_Changed then -- Need to redraw everything
          Refresh;
          Or_And.Set_Active (Index => 2, Active => True);
-         Search_From (Search_Item => Item, Prev_Index => 0);
+         Search_From (Search_Item => New_Item, Prev_Index => 0);
       else -- Can update Sel directly
-         Index := List_Index (Item);
-         Sel.Insert (Text => Image (Item), Before => Index);
+         Index := List_Index (New_Item);
+         Sel.Delete (Index => Sel_Index);
+         Sel.Insert (Text => Image (New_Item), Before => Index);
          Sel.Set_Selected (Index => Index);
       end if;
    exception -- Modify
@@ -319,8 +320,10 @@ package body DB_Maker is
          Refresh;
       else -- Can update Sel directly
          Sel.Delete (Index => Index);
-         Sel.Set_Selected (Index => Integer'Min (Sel.Length, Index) );
       end if;
+
+      Reset;
+      Count.Set_Text (Text => Integer'Image (List.Length) );
    exception -- Delete_Item
    when E : others =>
       Ada.Text_IO.Put_Line (Item => "Delete_Item: " & Ada.Exceptions.Exception_Information (E) );
@@ -480,11 +483,6 @@ package body DB_Maker is
 
       return Result;
    end Text_List;
-   --  procedure Add_One (Item : in Element) is
-   --  begin
-   --  Sel.Insert(Image(Item));
-   --  end Add_One;
-   --  procedure Add_All is new Lists.Iterate(Add_One);
 
    Event : Ada_GUI.Next_Result_Info;
 
@@ -501,8 +499,6 @@ begin -- DB_Maker
    Find_Max;
    Build_Header;
    Sel := Ada_GUI.New_Selection_List (Text => Text_List (List), Break_Before => True, Height => 20);
-   --  Sel := Ada_GUI.New_Selection_List (Text => (1..0=> <>), Break_Before => True, Height => 20);
-   --  Add_All(List);
    Sel.Set_Text_Font_Kind (Kind => Ada_GUI.Monospaced);
 
    Count := Ada_GUI.New_Text_Box (Text => Integer'Image (List.Length), Break_Before => True, Label => "Number of items:");
